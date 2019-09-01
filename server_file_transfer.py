@@ -1,8 +1,10 @@
 import threading
 import socket
+import os
 
 host = ''
 port = 54321
+file_path = 'xyz.txt'
 
 class ClientFileTransfer(threading.Thread):
     def __init__(self, conn, addr):
@@ -12,18 +14,20 @@ class ClientFileTransfer(threading.Thread):
         self.addr = addr
     def run(self):
         while True:
+            size = str.encode(str(os.path.getsize(file_path)))
+            self.conn.send(size)
             msg = self.conn.recv(1024)
             if not msg:
                 break
             print('[M]', self.addr, 'Message from the client:', msg.decode())
-            with open('Text.csv', 'rb') as f:
-                r = f.read(1024)
+            with open(file_path, 'rb') as f:
+                r = f.read(10)
                 while r:
                     self.conn.send(r)
-                    r = f.read(1024)
+                    r = f.read(512)
                 if not r:
                     self.conn.close()
-                    print('[S] Sent-> Text.txt to client', self.addr)
+                    print(f'[S] Sent-> {file_path} to client', self.addr)
                     print('[-]', self.addr, 'Connection closed')
                     break
 
